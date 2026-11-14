@@ -156,58 +156,96 @@
       font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
     }
     .lc-ball {
+      position: relative;
       width: 52px; height: 52px; border-radius: 50%;
-      background: linear-gradient(135deg, #2563eb, #6366f1);
-      box-shadow: 0 6px 20px rgba(37,99,235,.45);
-      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6, #06b6d4);
+      background-size: 300% 300%;
+      animation: lc-float 3.2s ease-in-out infinite, lc-flow 8s linear infinite;
+      box-shadow: 0 6px 20px rgba(99,102,241,.45), 0 2px 6px rgba(6,182,212,.25);
       cursor: pointer; user-select: none;
       touch-action: none; /* 触屏拖动球时不触发页面滚动 */
-      transition: transform .15s ease, box-shadow .15s ease;
     }
-    .lc-ball:hover { transform: scale(1.08); box-shadow: 0 8px 26px rgba(37,99,235,.55); }
-    .lc-ball:active { transform: scale(.96); }
-    .lc-ball svg { width: 26px; height: 26px; pointer-events: none; }
+    /* 悬浮呼吸：轻微上下浮动，让球有"活着"的感觉 */
+    @keyframes lc-float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-4px) } }
+    /* 流光：渐变色缓慢流动 */
+    @keyframes lc-flow { to { background-position: 300% 300% } }
+    /* 光环涟漪：向外扩散的呼吸圈 */
+    .lc-ball::after {
+      content: ""; position: absolute; inset: -3px; border-radius: 50%;
+      border: 2px solid rgba(139,92,246,.45);
+      animation: lc-ring 2.6s ease-out infinite;
+      pointer-events: none;
+    }
+    @keyframes lc-ring {
+      0% { transform: scale(.92); opacity: .8 }
+      70% { transform: scale(1.4); opacity: 0 }
+      100% { transform: scale(1.4); opacity: 0 }
+    }
+    /* 缩放交给内层 core：外层 transform 被浮动动画占用，分层避免冲突 */
+    .lc-core {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+    }
+    .lc-ball:hover .lc-core { transform: scale(1.12) rotate(-8deg); }
+    .lc-ball:active .lc-core { transform: scale(.88); }
+    .lc-core svg { width: 26px; height: 26px; pointer-events: none; }
     .lc-menu {
       /* 脱离文档流贴在球上方展开：隐藏时不占布局空间，提醒气泡得以紧贴悬浮球 */
       position: absolute; right: 0; bottom: 62px;
       display: flex; flex-direction: column; gap: 4px;
-      background: #fff; border-radius: 12px; padding: 6px;
-      box-shadow: 0 12px 40px rgba(0,0,0,.22), 0 0 0 1px rgba(0,0,0,.06);
-      opacity: 0; transform: translateY(6px) scale(.98); pointer-events: none;
-      transition: opacity .15s ease, transform .15s ease;
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(18px) saturate(1.6);
+      border: 1px solid rgba(255,255,255,.65);
+      border-radius: 16px; padding: 6px;
+      box-shadow: 0 16px 44px rgba(31,38,135,.18), 0 0 0 1px rgba(15,23,42,.05);
+      opacity: 0; transform: translateY(8px) scale(.92); pointer-events: none;
+      transition: opacity .18s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
       transform-origin: bottom right;
     }
     .lc-menu.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
     .lc-readtime {
       padding: 6px 14px 7px; margin-bottom: 3px;
       font-size: 11.5px; color: #94a3b8;
-      border-bottom: 1px solid #eef2f7;
+      border-bottom: 1px solid rgba(148,163,184,.2);
       white-space: nowrap; text-align: left;
     }
     .lc-menu button {
       all: unset; cursor: pointer;
-      padding: 8px 14px; border-radius: 8px;
-      font-size: 13px; color: #111827; white-space: nowrap;
+      padding: 8px 14px; border-radius: 10px;
+      font-size: 13px; color: #1e293b; white-space: nowrap;
+      transition: background .15s ease, color .15s ease, transform .2s cubic-bezier(.34,1.56,.64,1);
     }
-    .lc-menu button:hover { background: #eff6ff; color: #2563eb; }
+    .lc-menu button:hover {
+      background: linear-gradient(135deg, rgba(6,182,212,.12), rgba(139,92,246,.16));
+      color: #6d28d9; transform: translateX(3px);
+    }
     .lc-menu button .mi { margin-right: 8px; }
     /* 阅读提醒气泡：悬浮球上方冒出 */
     .lc-reminder {
       display: none;
-      background: #0f172a; color: #f8fafc;
-      border-radius: 10px; padding: 10px 14px;
+      background: rgba(15,23,42,.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148,163,184,.25);
+      color: #f1f5f9;
+      border-radius: 12px; padding: 10px 14px;
       font-size: 12.5px; line-height: 1.5;
       box-shadow: 0 10px 30px rgba(15,23,42,.35);
       cursor: pointer; max-width: 220px;
+      transform-origin: bottom right;
     }
-    .lc-reminder.show { display: block; }
+    .lc-reminder.show { display: block; animation: lc-pop .38s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes lc-pop {
+      0% { opacity: 0; transform: translateY(6px) scale(.9) }
+      100% { opacity: 1; transform: translateY(0) scale(1) }
+    }
   `;
 
   const LAUNCHER_ICON = '<svg viewBox="0 0 24 24" fill="none">'
     + '<path d="M12 3C7.03 3 3 6.58 3 11c0 1.83.74 3.5 1.97 4.82-.1 1.06-.5 2.06-1.16 2.87-.16.2-.02.5.23.47 1.5-.14 2.8-.7 3.66-1.3.98.36 2.06.57 3.3.57 4.97 0 9-3.58 9-8S16.97 3 12 3z" fill="#fff"/>'
-    + '<circle cx="8.6" cy="11" r="1.1" fill="#2563eb"/>'
-    + '<circle cx="12" cy="11" r="1.1" fill="#2563eb"/>'
-    + '<circle cx="15.4" cy="11" r="1.1" fill="#2563eb"/>'
+    + '<circle cx="8.6" cy="11" r="1.1" fill="#06b6d4"/>'
+    + '<circle cx="12" cy="11" r="1.1" fill="#3b82f6"/>'
+    + '<circle cx="15.4" cy="11" r="1.1" fill="#8b5cf6"/>'
     + '</svg>';
 
   const POS_KEY = 'pagesense_launcher_pos';
@@ -255,7 +293,7 @@
           <button data-act="summarize-sel"><span class="mi">📝</span>摘要选中内容</button>
           <button data-act="settings"><span class="mi">⚙️</span>设置</button>
         </div>
-        <div class="lc-ball" title="PageSense：点击摘要（有选区时摘要选中段落，否则摘要整页），悬停展开菜单">${LAUNCHER_ICON}</div>
+        <div class="lc-ball" title="PageSense：点击摘要（有选区时摘要选中段落，否则摘要整页），悬停展开菜单"><div class="lc-core">${LAUNCHER_ICON}</div></div>
       </div>`;
     document.documentElement.appendChild(lcHost);
 
@@ -435,34 +473,49 @@
     .fw {
       position: fixed; z-index: 2147483647;
       width: 330px; max-width: calc(100vw - 24px);
-      background: #fff; border-radius: 14px;
-      box-shadow: 0 16px 48px rgba(15,23,42,.16), 0 0 0 1px rgba(15,23,42,.05);
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(20px) saturate(1.5);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(31,38,135,.18), 0 0 0 1px rgba(15,23,42,.06);
       font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
       color: #0f172a;
       display: flex; flex-direction: column;
       overflow: hidden;
-      opacity: 0; transform: translateY(8px) scale(.97);
-      transition: opacity .16s ease, transform .16s ease;
+      opacity: 0; transform: translateY(10px) scale(.94);
+      transition: opacity .2s ease, transform .34s cubic-bezier(.34,1.56,.64,1);
       transform-origin: bottom right;
     }
     .fw.show { opacity: 1; transform: translateY(0) scale(1); }
     .fw-header {
+      position: relative;
       display: flex; align-items: center; gap: 8px;
       padding: 8px 10px 8px 14px;
-      background: #f8fafc; border-bottom: 1px solid #eef2f7;
+      background: rgba(248,250,252,.7);
+      border-bottom: 1px solid rgba(148,163,184,.18);
       cursor: move; user-select: none;
       touch-action: none; /* 触屏拖动卡片时不触发页面滚动 */
     }
-    .fw-logo { font-weight: 700; font-size: 12px; color: #2563eb; white-space: nowrap; }
+    /* 头部顶端的渐变高光线，点睛用 */
+    .fw-header::before {
+      content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+      background: linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6, transparent 85%);
+      opacity: .8;
+    }
+    .fw-logo {
+      font-weight: 700; font-size: 12px; white-space: nowrap;
+      background: linear-gradient(135deg, #0891b2, #6d28d9);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
     .fw-title {
       flex: 1; font-size: 11px; color: #64748b;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .fw-close {
-      all: unset; cursor: pointer; padding: 3px 8px; border-radius: 6px;
+      all: unset; cursor: pointer; padding: 3px 8px; border-radius: 8px;
       font-size: 11px; line-height: 1; color: #94a3b8;
+      transition: background .15s, color .15s, transform .2s cubic-bezier(.34,1.56,.64,1);
     }
-    .fw-close:hover { background: #e2e8f0; color: #334155; }
+    .fw-close:hover { background: rgba(148,163,184,.2); color: #334155; transform: rotate(90deg); }
     .fw-body {
       max-height: 46vh; min-height: 40px; overflow-y: auto;
       padding: 12px 14px;
@@ -474,7 +527,7 @@
     }
     .spinner {
       width: 12px; height: 12px; border-radius: 50%;
-      border: 2px solid #dbeafe; border-top-color: #2563eb;
+      border: 2px solid #ddd6fe; border-top-color: #7c3aed;
       animation: spin .8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg) } }
@@ -482,18 +535,18 @@
     /* Markdown */
     .md { word-wrap: break-word; font-size: 13px; line-height: 1.7; }
     .md h1,.md h2,.md h3,.md h4,.md h5 { margin: 10px 0 5px; line-height: 1.4; color: #0f172a; }
-    .md h2 { font-size: 14px; padding-bottom: 3px; border-bottom: 1px solid #eef2f7; }
+    .md h2 { font-size: 14px; padding-bottom: 3px; border-bottom: 1px solid rgba(148,163,184,.2); }
     .md h3 { font-size: 13px; }
     .md p { margin: 4px 0; }
     .md ul { margin: 4px 0; padding-left: 18px; }
     .md li { margin: 3px 0; }
-    .md li::marker { color: #2563eb; }
+    .md li::marker { color: #7c3aed; }
     .md code { background: #f1f5f9; border-radius: 4px; padding: 1px 5px; font-family: Consolas, monospace; font-size: 12px; color: #be185d; }
-    .md pre { background: #0f172a; border-radius: 8px; padding: 10px 12px; overflow-x: auto; }
+    .md pre { background: #0f172a; border-radius: 10px; padding: 10px 12px; overflow-x: auto; }
     .md pre code { background: none; padding: 0; color: #e2e8f0; }
-    .md blockquote { margin: 5px 0; padding: 2px 10px; color: #64748b; border-left: 3px solid #93c5fd; }
+    .md blockquote { margin: 5px 0; padding: 2px 10px; color: #64748b; border-left: 3px solid #a78bfa; }
     .md strong { font-weight: 600; color: #0f172a; }
-    .ps-cursor::after { content: "▍"; color: #2563eb; animation: blink 1s infinite; }
+    .ps-cursor::after { content: "▍"; color: #7c3aed; animation: blink 1s infinite; }
     @keyframes blink { 0%,100% { opacity: .2 } 50% { opacity: 1 } }
     /* 错误卡片 */
     .error-card {
@@ -503,21 +556,26 @@
     .error-card .row { display: flex; gap: 8px; margin-top: 8px; }
     .error-card button {
       all: unset; cursor: pointer; background: #dc2626; color: #fff;
-      padding: 4px 12px; border-radius: 6px; font-size: 12px;
+      padding: 4px 12px; border-radius: 8px; font-size: 12px;
     }
     .error-card button.secondary { background: #fff; color: #dc2626; border: 1px solid #fecaca; }
     /* 底部操作栏 */
     .fw-footer {
       display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
-      padding: 8px 10px; border-top: 1px solid #eef2f7; background: #f8fafc;
+      padding: 8px 10px; border-top: 1px solid rgba(148,163,184,.18);
+      background: rgba(248,250,252,.7);
     }
     .fw-footer button {
       all: unset; cursor: pointer; font-size: 11.5px;
-      padding: 4px 10px; border-radius: 6px;
-      border: 1px solid #e2e8f0; color: #334155; background: #fff;
-      transition: background .12s;
+      padding: 4px 11px; border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.35); color: #334155; background: rgba(255,255,255,.85);
+      transition: background .15s, border-color .15s, color .15s, transform .2s cubic-bezier(.34,1.56,.64,1);
     }
-    .fw-footer button:hover:not(:disabled) { background: #eff6ff; border-color: #bfdbfe; color: #2563eb; }
+    .fw-footer button:hover:not(:disabled) {
+      background: linear-gradient(135deg, rgba(6,182,212,.12), rgba(139,92,246,.16));
+      border-color: rgba(139,92,246,.4); color: #6d28d9; transform: translateY(-1px);
+    }
+    .fw-footer button:active:not(:disabled) { transform: translateY(0) scale(.95); }
     .fw-footer button:disabled { opacity: .4; cursor: default; }
     .fw-footer .spacer { flex: 1; }
   `;
