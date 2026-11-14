@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>PageSense 设置</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="wrap">
+    <h1>PageSense 设置</h1>
+
+    <section>
+      <h2>LLM API（OpenAI 兼容格式）</h2>
+      <label class="field">
+        <span>API Base URL <em>*</em></span>
+        <input id="opt-baseurl" type="text" placeholder="例如 https://api.deepseek.com 或 https://api.openai.com/v1（自动补全 /chat/completions）">
+      </label>
+      <label class="field">
+        <span>API Key <em>*</em></span>
+        <input id="opt-apikey" type="password" placeholder="sk-..." autocomplete="off">
+      </label>
+      <label class="field">
+        <span>模型名称 <em>*</em></span>
+        <input id="opt-model" type="text" placeholder="例如 deepseek-chat / gpt-4o-mini / glm-4-flash">
+      </label>
+      <label class="field">
+        <span>温度（0~1，越低越稳定）</span>
+        <input id="opt-temperature" type="number" min="0" max="1" step="0.1" value="0.3">
+      </label>
+      <div class="row">
+        <button id="btn-test" class="secondary">测试连接</button>
+        <span id="test-result"></span>
+      </div>
+      <p class="note">密钥仅保存在本机 chrome.storage.local，不会上传到任何第三方服务器；所有请求直接发往你填写的 API 地址。</p>
+    </section>
+
+    <section>
+      <h2>输出偏好</h2>
+      <label class="field">
+        <span>摘要风格</span>
+        <select id="opt-style">
+          <option value="brief">一句话（仅 50 字以内概括）</option>
+          <option value="standard">一句话 + 要点（一句话 + 最多 3 条）</option>
+          <option value="detailed">短段落（150 字以内）</option>
+          <option value="custom">自定义（在下方输入风格要求）</option>
+        </select>
+      </label>
+      <label class="field" id="custom-style-field" style="display:none">
+        <span>自定义风格要求</span>
+        <textarea id="opt-customstyle" rows="3" placeholder="用自然语言描述你想要的摘要样式，例如：&#10;提取正文中的所有数字与结论，以表格形式输出；&#10;用小学生能听懂的话概括；以问答形式输出 3 组 Q&amp;A。"></textarea>
+      </label>
+      <label class="field">
+        <span>输出语言</span>
+        <select id="opt-language">
+          <option value="zh">中文</option>
+          <option value="en">English</option>
+          <option value="auto">跟随原文</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>阅读提醒（分钟，0 表示关闭）</span>
+        <input id="opt-reminder" type="number" min="0" max="180" step="5" placeholder="0">
+      </label>
+      <label class="field inline">
+        <input id="opt-launcher" type="checkbox">
+        <span>页面右下角显示常驻悬浮球（点击摘要，悬停展开菜单，可拖动）</span>
+      </label>
+    </section>
+
+    <div class="actions">
+      <button id="btn-save" class="primary">保存设置</button>
+      <span id="save-result"></span>
+    </div>
+
+    <p class="note">快捷键可在 edge://extensions/shortcuts 中修改（默认 Alt+S 摘要本页、Alt+E 解释选中内容）。</p>
+
+    <section>
+      <h2>收藏本（最近 50 条收藏）</h2>
+      <div class="row">
+        <input id="clips-search" type="text" placeholder="搜索收藏（标题 / 内容关键字）">
+      </div>
+      <div class="row">
+        <button id="btn-clips-export" class="secondary">导出全部</button>
+        <button id="btn-clips-clear" class="secondary">清空</button>
+        <span id="clips-count" class="note"></span>
+      </div>
+      <div id="clips-list"></div>
+      <p class="note">在结果卡片点击「收藏」即可把摘要/解释存入收藏本。</p>
+    </section>
+
+    <section>
+      <h2>术语本</h2>
+      <label class="field">
+        <span>术语</span>
+        <input id="opt-term" type="text" placeholder="如：RLHF / 消融实验 / SOTA">
+      </label>
+      <label class="field">
+        <span>期望解释</span>
+        <textarea id="opt-term-note" rows="2" placeholder="如：基于人类反馈的强化学习"></textarea>
+      </label>
+      <div class="row">
+        <button id="btn-add-term" class="secondary">添加术语</button>
+        <span id="term-msg"></span>
+      </div>
+      <div id="terms-list"></div>
+      <p class="note">摘要与解释会按术语本理解相关词汇；在解释卡片点击「存术语」也可一键加入。</p>
+    </section>
+  </div>
+
+  <script src="../shared/constants.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

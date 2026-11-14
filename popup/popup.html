@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="brand-row">
+    <img src="../icons/icon32.png" alt="PageSense">
+    <span class="brand">PageSense</span>
+  </div>
+
+  <div id="config-warn" class="warn hidden">
+    尚未配置 LLM API，请先完成设置。
+  </div>
+
+  <div id="page-info" class="page-info">
+    <div id="page-title" class="page-title">读取中…</div>
+  </div>
+
+  <button id="btn-summarize" class="primary">摘要本页</button>
+  <button id="btn-options" class="secondary">设置</button>
+
+  <div class="shortcuts">快捷键：Alt+S 摘要本页 · Alt+E 解释选中内容<br>结果将以悬浮窗显示在页面内，可拖动</div>
+
+  <script src="../shared/constants.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
