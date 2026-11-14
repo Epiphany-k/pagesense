@@ -13,10 +13,24 @@
     } catch (e) { /* storage 不可用时保持默认 */ }
   }
   loadConfig();
+  // 悬浮球形象（桌宠）：默认 SVG / 预设 emoji / 自定义图片（GIF 动画）
+  let petIcon = null;
+  async function loadPetIcon() {
+    try {
+      const stored = await chrome.storage.local.get(LAUNCHER_ICON_KEY);
+      petIcon = stored[LAUNCHER_ICON_KEY] || null;
+    } catch (e) { /* storage 不可用时保持默认 */ }
+  }
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'local' && changes[CONFIG_KEY]) {
+    if (area !== 'local') return;
+    if (changes[CONFIG_KEY]) {
       cfg = Object.assign({}, DEFAULT_CONFIG, changes[CONFIG_KEY].newValue || {});
       applyLauncherVisibility();
+    }
+    // 桌宠形象切换后实时同步到已打开页面
+    if (changes[LAUNCHER_ICON_KEY]) {
+      petIcon = changes[LAUNCHER_ICON_KEY].newValue || null;
+      applyLauncherIcon();
     }
   });
 
@@ -193,11 +207,12 @@
     .lc-menu {
       /* 脱离文档流贴在球上方展开：隐藏时不占布局空间，提醒气泡得以紧贴悬浮球 */
       position: absolute; right: 0; bottom: 62px;
+      min-width: 168px; /* 最小宽度：菜单项长度不同时不抖动 */
       display: flex; flex-direction: column; gap: 4px;
       background: rgba(255,255,255,.82);
       backdrop-filter: blur(18px) saturate(1.6);
       border: 1px solid rgba(255,255,255,.65);
-      border-radius: 16px; padding: 6px;
+      border-radius: 16px; padding: 7px;
       box-shadow: 0 16px 44px rgba(31,38,135,.18), 0 0 0 1px rgba(15,23,42,.05);
       opacity: 0; transform: translateY(8px) scale(.92); pointer-events: none;
       transition: opacity .18s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
@@ -212,7 +227,7 @@
     }
     .lc-menu button {
       all: unset; cursor: pointer;
-      padding: 8px 14px; border-radius: 10px;
+      padding: 9px 15px; border-radius: 10px;
       font-size: 13px; color: #1e293b; white-space: nowrap;
       transition: background .15s ease, color .15s ease, transform .2s cubic-bezier(.34,1.56,.64,1);
     }
@@ -239,6 +254,12 @@
       0% { opacity: 0; transform: translateY(6px) scale(.9) }
       100% { opacity: 1; transform: translateY(0) scale(1) }
     }
+    /* 桌宠形象：emoji 模式 —— 渐变球身 + 角色 */
+    .lc-ball.pet-emoji .lc-core { font-size: 27px; line-height: 1; }
+    /* 桌宠形象：自定义图片模式 —— 去掉渐变底与光环，图片按原比例呈现（GIF 保留动画） */
+    .lc-ball.pet-image { background: none; box-shadow: 0 6px 20px rgba(99,102,241,.38), 0 2px 6px rgba(6,182,212,.2); }
+    .lc-ball.pet-image::after { display: none; }
+    .lc-ball.pet-image .lc-core img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
   `;
 
   const LAUNCHER_ICON = '<svg viewBox="0 0 24 24" fill="none">'
@@ -387,6 +408,30 @@
       reminder.classList.remove('show');
     });
     startReadingReminder();
+    applyLauncherIcon(); // 按 petIcon 渲染球体形象（默认 SVG / emoji / 自定义图片）
+  }
+
+  // 应用桌宠形象：更换球体外观，交互（点击/拖动/悬停菜单/呼吸浮动）保持不变
+  function applyLauncherIcon() {
+    if (!lcShadow) return;
+    const ball = lcShadow.querySelector('.lc-ball');
+    const core = lcShadow.querySelector('.lc-core');
+    if (!ball || !core) return;
+    ball.classList.remove('pet-emoji', 'pet-image');
+    core.textContent = '';
+    if (petIcon && petIcon.type === 'emoji' && petIcon.value) {
+      ball.classList.add('pet-emoji');
+      core.textContent = petIcon.value;
+    } else if (petIcon && petIcon.type === 'image' && petIcon.value) {
+      ball.classList.add('pet-image');
+      const img = document.createElement('img');
+      img.src = petIcon.value;
+      img.alt = 'PageSense';
+      img.draggable = false;
+      core.appendChild(img);
+    } else {
+      core.innerHTML = LAUNCHER_ICON;
+    }
   }
 
   function applyLauncherVisibility() {
@@ -460,8 +505,8 @@
     }
   }
 
-  // 配置就绪后创建悬浮球
-  loadConfig().then(applyLauncherVisibility);
+  // 配置与桌宠形象就绪后创建悬浮球
+  Promise.all([loadConfig(), loadPetIcon()]).then(applyLauncherVisibility);
 
   // ================= 结果小卡片 =================
   let fwHost = null, fwShadow = null;
@@ -472,7 +517,7 @@
   const FW_CSS = `
     .fw {
       position: fixed; z-index: 2147483647;
-      width: 330px; max-width: calc(100vw - 24px);
+      width: 360px; max-width: calc(100vw - 24px);
       background: rgba(255,255,255,.92);
       backdrop-filter: blur(20px) saturate(1.5);
       border-radius: 16px;
@@ -489,7 +534,7 @@
     .fw-header {
       position: relative;
       display: flex; align-items: center; gap: 8px;
-      padding: 8px 10px 8px 14px;
+      padding: 10px 12px 10px 14px;
       background: rgba(248,250,252,.7);
       border-bottom: 1px solid rgba(148,163,184,.18);
       cursor: move; user-select: none;
@@ -518,7 +563,7 @@
     .fw-close:hover { background: rgba(148,163,184,.2); color: #334155; transform: rotate(90deg); }
     .fw-body {
       max-height: 46vh; min-height: 40px; overflow-y: auto;
-      padding: 12px 14px;
+      padding: 14px 16px;
       scrollbar-width: thin;
     }
     .status-line {
@@ -561,13 +606,13 @@
     .error-card button.secondary { background: #fff; color: #dc2626; border: 1px solid #fecaca; }
     /* 底部操作栏 */
     .fw-footer {
-      display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
-      padding: 8px 10px; border-top: 1px solid rgba(148,163,184,.18);
+      display: flex; flex-wrap: wrap; align-items: center; gap: 7px;
+      padding: 10px 12px; border-top: 1px solid rgba(148,163,184,.18);
       background: rgba(248,250,252,.7);
     }
     .fw-footer button {
       all: unset; cursor: pointer; font-size: 11.5px;
-      padding: 4px 11px; border-radius: 999px;
+      padding: 5px 12px; border-radius: 999px;
       border: 1px solid rgba(148,163,184,.35); color: #334155; background: rgba(255,255,255,.85);
       transition: background .15s, border-color .15s, color .15s, transform .2s cubic-bezier(.34,1.56,.64,1);
     }

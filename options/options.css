@@ -12,23 +12,43 @@ body {
   background-attachment: fixed;
 }
 
-.wrap { max-width: 560px; margin: 0 auto; }
+/* 竖直单栏延展：所有区块自上而下堆叠，不横向铺开 */
+.wrap {
+  max-width: 720px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.wrap > h1 { margin-bottom: 4px; }
+/* 间距交给 flex gap 统一控制，屏蔽 section 自带的下边距 */
+.wrap > section, .wrap > .actions { margin-bottom: 0; }
+/* LLM 区块内部字段两列排布，标题/测试行/说明跨双列 */
+.sec-llm { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+.sec-llm > h2, .sec-llm > .row, .sec-llm > .note { grid-column: 1 / -1; }
+/* 保存操作：无外框，仅按钮右对齐 */
+.actions { display: flex; justify-content: flex-end; align-items: center; gap: 14px; }
+.actions button.primary { padding: 12px 32px; font-size: 14px; }
+.footnote { text-align: center; margin: 0; }
+/* 窄屏：LLM 字段回落单列 */
+@media (max-width: 720px) {
+  .sec-llm { grid-template-columns: 1fr; }
+}
 
 h1 {
   font-size: 24px; margin: 0 0 24px; letter-spacing: .3px;
   background: linear-gradient(135deg, #0891b2, #6d28d9);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
+/* 标题下的渐变分隔线：与整体青-蓝-紫视觉呼应 */
+h1::after {
+  content: ""; display: block; width: 100%; height: 3px; margin-top: 12px;
+  border-radius: 999px; opacity: .45;
+  background: linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6, transparent 85%);
+}
 h2 {
   font-size: 15px; margin: 0 0 14px; color: #1e293b;
   display: flex; align-items: center; gap: 8px;
 }
-/* 渐变小圆点标题装饰 */
-h2::before {
-  content: ""; width: 6px; height: 6px; border-radius: 50%;
-  background: linear-gradient(135deg, #06b6d4, #8b5cf6);
-  box-shadow: 0 0 6px rgba(99,102,241,.6);
-}
+/* 区块标题图标：与插件内菜单的 emoji 风格统一 */
+h2 .sec-ic { font-size: 16px; line-height: 1; }
 
 section {
   background: rgba(255,255,255,.85);
@@ -61,8 +81,13 @@ section:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(31,38,
   box-shadow: 0 0 0 3px rgba(139,92,246,.15);
 }
 
+/* 数字输入框收窄：大盒装小数最显空旷 */
+.field input[type="number"] { max-width: 150px; }
+
 .field.inline { display: flex; align-items: center; gap: 8px; }
 .field.inline input { width: auto; }
+/* 复选框统一主题色 */
+input[type="checkbox"] { accent-color: #7c3aed; }
 .field.inline span { margin: 0; }
 
 .row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
@@ -123,3 +148,43 @@ button.secondary:hover { transform: translateY(-1px); border-color: rgba(139,92,
 #test-result.ok { color: #16a34a; }
 #test-result.err { color: #dc2626; }
 #save-result.err { color: #dc2626; }
+
+/* 悬浮球形象（桌宠） */
+.pet-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.pet-head .note { flex: 1; }
+/* 形象区操作按钮靠右，与等高卡片底部对齐 */
+.sec-pet .row { justify-content: flex-end; }
+.pet-preview {
+  flex: none; width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6, #06b6d4);
+  background-size: 300% 300%;
+  animation: pet-flow 6s linear infinite, pet-pulse 3s ease-in-out infinite;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; overflow: hidden; color: #fff;
+  box-shadow: 0 4px 14px rgba(99,102,241,.4);
+}
+@keyframes pet-flow { to { background-position: 300% 300% } }
+/* 预览球呼吸脉动，呼应悬浮球的"活着"感 */
+@keyframes pet-pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.06) } }
+.pet-preview img { width: 100%; height: 100%; object-fit: contain; }
+/* 固定 8 列网格：16 个候选两行整齐排布 */
+.pet-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; place-items: center; }
+.pet-cell {
+  width: 44px; height: 44px; border-radius: 50%; border: 2px solid transparent;
+  background: rgba(255,255,255,.9); box-shadow: 0 2px 8px rgba(31,38,135,.08);
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  font-size: 22px; cursor: pointer; user-select: none; padding: 0;
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1), border-color .2s, box-shadow .2s;
+}
+.pet-cell:hover { transform: translateY(-3px) scale(1.08); }
+/* 选中态：渐变描边光环 + 轻微放大，一眼可见 */
+.pet-cell.selected {
+  border-color: transparent; transform: scale(1.06);
+  background: linear-gradient(135deg, rgba(6,182,212,.14), rgba(139,92,246,.2));
+  box-shadow: 0 0 0 2px #8b5cf6, 0 4px 14px rgba(139,92,246,.35);
+}
+.pet-cell img { width: 100%; height: 100%; object-fit: contain; }
+#pet-msg.err { color: #dc2626; }
+#pet-msg.ok { color: #16a34a; }
+#cfg-msg.err { color: #dc2626; }
+#cfg-msg.ok { color: #16a34a; }

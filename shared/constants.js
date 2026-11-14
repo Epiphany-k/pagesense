@@ -30,6 +30,7 @@ const MSG = {
 const CONFIG_KEY = 'pagesense_config';
 const CLIPS_KEY = 'pagesense_clips'; // 收藏本（收藏的摘要/解释结果）
 const MAX_CLIPS = 50;                // 收藏本容量上限（超出丢弃最旧）
+const LAUNCHER_ICON_KEY = 'pagesense_launcher_icon'; // 悬浮球形象（桌宠）：{type:'default'|'emoji'|'image', value, lastImage}
 
 // 默认配置
 const DEFAULT_CONFIG = {
